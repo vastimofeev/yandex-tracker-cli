@@ -101,8 +101,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          gh release view "${VERSION}" >/dev/null 2>&1 || \
-            gh release create "${VERSION}" --title "${VERSION}" --notes "Automated release ${VERSION}"
+          gh release view "${VERSION}" -R "${GITHUB_REPOSITORY}" >/dev/null 2>&1 || \
+            gh release create "${VERSION}" -R "${GITHUB_REPOSITORY}" --title "${VERSION}" --notes "Automated release ${VERSION}"
 
       - name: Upload release assets
         env:
@@ -110,5 +110,5 @@ jobs:
         shell: bash
         run: |
           find dist -type f -maxdepth 2 -print0 | while IFS= read -r -d '' file; do
-            gh release upload "${VERSION}" "$file" --clobber
+            gh release upload "${VERSION}" "$file" -R "${GITHUB_REPOSITORY}" --clobber
           done
