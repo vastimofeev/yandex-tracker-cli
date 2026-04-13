@@ -1,0 +1,8 @@
+.gocache/
+.tmp-bin/
+.vendor/
+.docs/
+docs/
+plan.md
+*.exe
+.tmp-*.json
