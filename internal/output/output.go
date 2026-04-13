@@ -350,6 +350,13 @@ func formatSpecialMap(value map[string]any) (string, bool) {
 		return fmt.Sprintf("status: %v\nbase_url: %v\norg: %v (%v)\nauth_store: %v", value["status"], value["baseURL"], value["orgID"], value["orgHeader"], value["authStore"]), true
 	case reflect.DeepEqual(keys, []string{"authStore", "baseURL", "configured", "orgHeader", "orgID", "tokenType"}):
 		return fmt.Sprintf("configured: %v\nbase_url: %v\norg: %v (%v)\ntoken_type: %v\nauth_store: %v", value["configured"], value["baseURL"], value["orgID"], value["orgHeader"], value["tokenType"], value["authStore"]), true
+	case reflect.DeepEqual(keys, []string{"authStore", "baseURL", "configured", "orgHeader", "orgID", "orgPresent", "savedConfigured", "savedOrgHeader", "savedOrgID", "savedOrgPresent", "savedTokenPresent", "savedTokenType", "tokenPresent", "tokenType"}):
+		return fmt.Sprintf(
+			"current_configured: %v\ncurrent_token_present: %v\ncurrent_org: %v (%v)\ncurrent_org_present: %v\ncurrent_token_type: %v\nsaved_configured: %v\nsaved_token_present: %v\nsaved_org: %v (%v)\nsaved_org_present: %v\nsaved_token_type: %v\nbase_url: %v\nauth_store: %v",
+			value["configured"], value["tokenPresent"], value["orgID"], value["orgHeader"], value["orgPresent"], value["tokenType"],
+			value["savedConfigured"], value["savedTokenPresent"], value["savedOrgID"], value["savedOrgHeader"], value["savedOrgPresent"], value["savedTokenType"],
+			value["baseURL"], value["authStore"],
+		), true
 	case reflect.DeepEqual(keys, []string{"issue", "transitions"}):
 		issueText := Human(value["issue"])
 		transitionsText := Human(value["transitions"])

@@ -28,6 +28,7 @@ type Issue struct {
 	Version        int             `json:"version,omitempty"`
 	Summary        string          `json:"summary,omitempty"`
 	Description    string          `json:"description,omitempty"`
+	Start          string          `json:"start,omitempty"`
 	CreatedAt      string          `json:"createdAt,omitempty"`
 	UpdatedAt      string          `json:"updatedAt,omitempty"`
 	Queue          *Reference      `json:"queue,omitempty"`

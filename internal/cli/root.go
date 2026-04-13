@@ -14,6 +14,7 @@ import (
 	"github.com/vasti/yandex-tracker-cli/internal/auth"
 	"github.com/vasti/yandex-tracker-cli/internal/client"
 	"github.com/vasti/yandex-tracker-cli/internal/config"
+	"github.com/vasti/yandex-tracker-cli/internal/model"
 	"github.com/vasti/yandex-tracker-cli/internal/service"
 	"github.com/vasti/yandex-tracker-cli/internal/version"
 )
@@ -210,20 +211,30 @@ The saved auth context is stored in the system keyring.`,
 					return err
 				}
 				status := map[string]any{
-					"configured": runtime.Config.Auth.Complete(),
-					"baseURL":    runtime.Config.BaseURL,
-					"orgID":      runtime.Config.Auth.OrgID,
-					"orgHeader":  runtime.Config.Auth.OrgHeader,
-					"tokenType":  runtime.Config.Auth.TokenType,
-					"authStore":  currentStoreKind(runtime.Store, runtime.Config.AuthStore),
+					"authStore":        currentStoreKind(runtime.Store, runtime.Config.AuthStore),
+					"baseURL":          runtime.Config.BaseURL,
+					"configured":       runtime.Config.Auth.Complete(),
+					"tokenPresent":     runtime.Config.Auth.Token != "",
+					"orgPresent":       runtime.Config.Auth.OrgID != "" && runtime.Config.Auth.OrgHeader != "",
+					"orgID":            runtime.Config.Auth.OrgID,
+					"orgHeader":        runtime.Config.Auth.OrgHeader,
+					"tokenType":        runtime.Config.Auth.TokenType,
+					"savedConfigured":  runtime.Stored.Auth.Complete(),
+					"savedTokenPresent": runtime.Stored.Auth.Token != "",
+					"savedOrgPresent":  runtime.Stored.Auth.OrgID != "" && runtime.Stored.Auth.OrgHeader != "",
+					"savedOrgID":       runtime.Stored.Auth.OrgID,
+					"savedOrgHeader":   runtime.Stored.Auth.OrgHeader,
+					"savedTokenType":   runtime.Stored.Auth.TokenType,
 				}
-				if runtime.Config.Auth.Complete() {
+				if runtime.Config.Auth.Token != "" {
 					svc := service.New(runtime.Client)
 					user, validateErr := svc.ValidateAuth(cmd.Context())
 					if validateErr == nil {
 						status["user"] = user
+						status["validated"] = true
 					} else {
 						status["validationError"] = validateErr.Error()
+						status["validated"] = false
 					}
 				}
 				return runtime.Printer.Print(status)
@@ -286,15 +297,17 @@ The issue command covers:
 	var searchQuery string
 	var searchFilters []string
 	var searchKeys []string
-	var perPage, scrollPer, scrollTTL int
-	var scrollType, scrollID string
+	var perPage, scrollPer, scrollTTL, searchLimit int
+	var scrollType, scrollID, searchSort, searchOrder string
+	var searchSelect []string
 	searchCmd := &cobra.Command{
 		Use:   "search",
 		Short: "Search issues by query, keys, or Tracker filters",
 		Example: strings.TrimSpace(`
   yt issue search --query "Queue: DV"
   yt issue search --key DV-1 --key DV-2 --json
-  yt issue search --filter queue=DV --filter assignee=v.timofeev --per-page 20 --json`),
+  yt issue search --filter queue=DV --filter assignee=v.timofeev --per-page 20 --json
+  yt issue search --query '"Project": 766' --sort start --order asc --limit 1 --select key,start,summary,status.display --json`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -304,17 +317,77 @@ The issue command covers:
 			if err != nil {
 				return err
 			}
-			return runtime.Printer.Print(result)
+			presented, err := presentIssueSearch(result, searchSort, searchOrder, searchLimit, searchSelect)
+			if err != nil {
+				return err
+			}
+			return runtime.Printer.Print(presented)
 		},
 	}
 	searchCmd.Flags().StringVar(&searchQuery, "query", "", "query language expression")
 	searchCmd.Flags().StringArrayVar(&searchFilters, "filter", nil, "repeatable filter key=value")
 	searchCmd.Flags().StringArrayVar(&searchKeys, "key", nil, "search by issue key")
 	searchCmd.Flags().IntVar(&perPage, "per-page", 50, "page size")
+	searchCmd.Flags().IntVar(&searchLimit, "limit", 0, "limit the number of returned issues after filtering and sorting")
+	searchCmd.Flags().StringVar(&searchSort, "sort", "", "sort returned issues by a field path such as start, createdAt, status.display, or assignee.display")
+	searchCmd.Flags().StringVar(&searchOrder, "order", "asc", "sort order: asc or desc")
+	searchCmd.Flags().StringSliceVar(&searchSelect, "select", nil, "comma-separated field paths to project from each issue, for example key,start,summary,status.display")
 	searchCmd.Flags().StringVar(&scrollType, "scroll-type", "", "scroll type: sorted or unsorted")
 	searchCmd.Flags().IntVar(&scrollPer, "per-scroll", 0, "scroll page size")
 	searchCmd.Flags().IntVar(&scrollTTL, "scroll-ttl-millis", 0, "scroll lifetime in milliseconds")
 	searchCmd.Flags().StringVar(&scrollID, "scroll-id", "", "continue scroll with a prior scroll ID")
+
+	var schemaQueue string
+	schemaCmd := &cobra.Command{
+		Use:   "schema",
+		Short: "Show queue-specific issue schema information for agents and automation",
+		Long: `Inspect the fields and metadata that shape issues in a queue.
+
+This command is intended to help an agent discover:
+  - available queue fields
+  - queue-local custom fields
+  - required fields
+  - allowed issue types
+  - default type and priority`,
+		Example: strings.TrimSpace(`
+  yt issue schema --queue DV --json
+  yt issue schema --queue DV`),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			runtime, svc, err := runtimeFor(cmd, application, opts)
+			if err != nil {
+				return err
+			}
+			queue, err := svc.GetQueue(cmd.Context(), schemaQueue, []string{"types"})
+			if err != nil {
+				return err
+			}
+			fields, err := svc.GetQueueFields(cmd.Context(), schemaQueue)
+			if err != nil {
+				return err
+			}
+			localFields, err := svc.GetQueueLocalFields(cmd.Context(), schemaQueue)
+			if err != nil {
+				return err
+			}
+			requiredFields := make([]string, 0)
+			for _, field := range fields {
+				if isRequiredSchemaField(field) && !field.ReadOnly {
+					requiredFields = append(requiredFields, field.Key)
+				}
+			}
+			return runtime.Printer.Print(map[string]any{
+				"queue":           queue,
+				"fields":          fields,
+				"localFields":     localFields,
+				"requiredFields":  requiredFields,
+				"issueTypes":      queue.IssueTypes,
+				"defaultType":     queue.DefaultType,
+				"defaultPriority": queue.DefaultPriority,
+			})
+		},
+	}
+	schemaCmd.Flags().StringVar(&schemaQueue, "queue", "", "queue key to inspect")
+	_ = schemaCmd.MarkFlagRequired("queue")
 
 	var countQuery string
 	var countFilters []string
@@ -457,7 +530,7 @@ The issue command covers:
 		},
 	}
 
-	cmd.AddCommand(getCmd, searchCmd, countCmd, createCmd, editCmd, transitionsCmd, transitionCmd)
+	cmd.AddCommand(getCmd, searchCmd, countCmd, createCmd, editCmd, transitionsCmd, transitionCmd, schemaCmd)
 	cmd.AddCommand(newCommentCommand(application, opts))
 	cmd.AddCommand(newLinksCommand(application, opts))
 	cmd.AddCommand(newChecklistCommand(application, opts))
@@ -1122,4 +1195,12 @@ func readToken(input io.Reader) (string, error) {
 		return "", errors.New("empty OAuth token input")
 	}
 	return token, nil
+}
+
+func isRequiredSchemaField(field model.Field) bool {
+	if field.Schema == nil {
+		return false
+	}
+	required, ok := field.Schema["required"].(bool)
+	return ok && required
 }

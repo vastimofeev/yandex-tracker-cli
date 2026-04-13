@@ -28,6 +28,14 @@ From the repository root:
 
 This installs `yt.exe` to `$HOME\.local\bin` and can add that directory to the user `PATH`.
 
+For non-technical Windows users, you can also distribute:
+
+- [install-yt.bat](/C:/Users/vasti/documents/github/yandex-tracker-cli/install-yt.bat)
+- [update-yt.bat](/C:/Users/vasti/documents/github/yandex-tracker-cli/update-yt.bat)
+- [uninstall-yt.bat](/C:/Users/vasti/documents/github/yandex-tracker-cli/uninstall-yt.bat)
+
+`install-yt.bat` installs the latest published Windows release with a double-click flow.
+
 ### macOS and Linux
 
 From the repository root:

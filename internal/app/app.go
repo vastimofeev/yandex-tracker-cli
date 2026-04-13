@@ -22,6 +22,7 @@ type App struct {
 
 type Runtime struct {
 	Config  config.RuntimeConfig
+	Stored  config.StoredConfig
 	Store   auth.TokenStore
 	Client  *client.Client
 	Logger  *slog.Logger
@@ -71,6 +72,7 @@ func (a *App) BuildRuntime(ctx context.Context, opts config.CLIOptions) (*Runtim
 
 	return &Runtime{
 		Config:  cfg,
+		Stored:  stored,
 		Store:   buildStore(cfg.ConfigPath, cfg.AuthStore),
 		Client:  client.New(cfg.BaseURL, cfg.Auth, a.httpClient),
 		Logger:  slog.New(handler),
