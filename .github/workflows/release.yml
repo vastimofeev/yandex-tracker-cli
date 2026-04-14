@@ -133,14 +133,11 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.SELECTEL_S3_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.SELECTEL_S3_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.SELECTEL_S3_REGION }}
-          SELECTEL_S3_ENDPOINT: ${{ secrets.SELECTEL_S3_ENDPOINT }}
-          SELECTEL_S3_BUCKET: ${{ secrets.SELECTEL_S3_BUCKET }}
+          AWS_DEFAULT_REGION: ru-1
+          SELECTEL_S3_ENDPOINT: https://s3.ru-1.storage.selcloud.ru
+          SELECTEL_S3_BUCKET: yandex-tracker-cli
         shell: bash
         run: |
-          : "${AWS_DEFAULT_REGION:=ru-1}"
-          : "${SELECTEL_S3_ENDPOINT:=https://s3.ru-1.storage.selcloud.ru}"
-          : "${SELECTEL_S3_BUCKET:=yandex-tracker-cli}"
           aws --endpoint-url "${SELECTEL_S3_ENDPOINT}" s3 cp dist/yt-windows-amd64.exe "s3://${SELECTEL_S3_BUCKET}/releases/${VERSION}/yt-windows-amd64.exe"
           aws --endpoint-url "${SELECTEL_S3_ENDPOINT}" s3 cp dist/yt-linux-amd64 "s3://${SELECTEL_S3_BUCKET}/releases/${VERSION}/yt-linux-amd64"
           aws --endpoint-url "${SELECTEL_S3_ENDPOINT}" s3 cp dist/yt-darwin-amd64 "s3://${SELECTEL_S3_BUCKET}/releases/${VERSION}/yt-darwin-amd64"
