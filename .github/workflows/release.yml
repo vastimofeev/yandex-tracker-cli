@@ -89,9 +89,12 @@ jobs:
       - name: Flatten artifact layout
         shell: bash
         run: |
-          find dist -mindepth 2 -maxdepth 2 -type f -print0 | while IFS= read -r -d '' file; do
-            mv "$file" "dist/$(basename "$file")"
+          mkdir -p dist-flat
+          find dist -maxdepth 2 -type f -print0 | while IFS= read -r -d '' file; do
+            cp "$file" "dist-flat/$(basename "$file")"
           done
+          rm -rf dist
+          mv dist-flat dist
 
       - name: Set release metadata
         shell: bash
