@@ -86,6 +86,13 @@ jobs:
         with:
           path: dist
 
+      - name: Flatten artifact layout
+        shell: bash
+        run: |
+          find dist -mindepth 2 -maxdepth 2 -type f -print0 | while IFS= read -r -d '' file; do
+            mv "$file" "dist/$(basename "$file")"
+          done
+
       - name: Set release metadata
         shell: bash
         run: |
@@ -109,7 +116,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          find dist -type f -maxdepth 2 -print0 | while IFS= read -r -d '' file; do
+          find dist -maxdepth 1 -type f -print0 | while IFS= read -r -d '' file; do
             gh release upload "${VERSION}" "$file" -R "${GITHUB_REPOSITORY}" --clobber
           done
 
