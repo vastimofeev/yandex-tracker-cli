@@ -5,6 +5,8 @@ INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 VERSION=""
 REPO="vasti/yandex-tracker-cli"
 FROM_RELEASE="false"
+CHANNEL=""
+BASE_URL="${BASE_URL:-https://s3.ru-1.storage.selcloud.ru/yandex-tracker-cli}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -24,6 +26,14 @@ while [[ $# -gt 0 ]]; do
       FROM_RELEASE="true"
       shift
       ;;
+    --channel)
+      CHANNEL="$2"
+      shift 2
+      ;;
+    --base-url)
+      BASE_URL="$2"
+      shift 2
+      ;;
     *)
       echo "Unknown argument: $1" >&2
       exit 1
@@ -34,7 +44,15 @@ done
 mkdir -p "$INSTALL_DIR"
 OUTPUT="$INSTALL_DIR/yt"
 
-if [[ "$FROM_RELEASE" == "true" ]]; then
+if [[ -z "$CHANNEL" ]]; then
+  if [[ "$FROM_RELEASE" == "true" ]]; then
+    CHANNEL="github"
+  else
+    CHANNEL="local"
+  fi
+fi
+
+if [[ "$CHANNEL" != "local" ]]; then
   OS="$(uname -s)"
   ARCH="$(uname -m)"
   case "$OS" in
@@ -56,11 +74,27 @@ if [[ "$FROM_RELEASE" == "true" ]]; then
   esac
 
   ASSET_NAME="yt-${OS_NAME}-${ARCH_NAME}"
-  if [[ -n "$VERSION" ]]; then
-    DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION}/${ASSET_NAME}"
-  else
-    DOWNLOAD_URL="https://github.com/${REPO}/releases/latest/download/${ASSET_NAME}"
-  fi
+  case "$CHANNEL" in
+    github)
+      if [[ -n "$VERSION" ]]; then
+        DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION}/${ASSET_NAME}"
+      else
+        DOWNLOAD_URL="https://github.com/${REPO}/releases/latest/download/${ASSET_NAME}"
+      fi
+      ;;
+    s3)
+      BASE_URL="${BASE_URL%/}"
+      if [[ -n "$VERSION" ]]; then
+        DOWNLOAD_URL="${BASE_URL}/releases/${VERSION}/${ASSET_NAME}"
+      else
+        DOWNLOAD_URL="${BASE_URL}/latest/${ASSET_NAME}"
+      fi
+      ;;
+    *)
+      echo "Unsupported install channel: $CHANNEL" >&2
+      exit 1
+      ;;
+  esac
 
   if command -v curl >/dev/null 2>&1; then
     curl -fsSL "$DOWNLOAD_URL" -o "$OUTPUT"
@@ -77,7 +111,7 @@ else
 fi
 
 cat <<EOF
-Installed yt to $OUTPUT
+Installed yt to $OUTPUT from channel '$CHANNEL'
 Make sure $INSTALL_DIR is in PATH.
 EOF
 "$OUTPUT" version

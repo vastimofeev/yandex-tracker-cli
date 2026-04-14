@@ -46,7 +46,33 @@ From the repository root:
 
 This installs `yt` to `~/.local/bin`.
 
-### Install from GitHub Release
+### Install from Release
+
+Corporate Selectel S3 channel:
+
+Windows:
+
+```powershell
+.\scripts\install.ps1 -Channel s3
+```
+
+macOS or Linux:
+
+```bash
+./scripts/install.sh --channel s3
+```
+
+You can also pin a specific tag:
+
+```powershell
+.\scripts\install.ps1 -Channel s3 -Version v1.3.1
+```
+
+```bash
+./scripts/install.sh --channel s3 --version v1.3.1
+```
+
+GitHub Release channel:
 
 Windows:
 
@@ -69,6 +95,8 @@ You can also pin a specific tag:
 ```bash
 ./scripts/install.sh --from-release --version v1.3.0
 ```
+
+For non-technical Windows users, you can distribute a standalone `install-yt.bat`. When launched outside the repository, it downloads the latest installer script from the corporate Selectel S3 bucket and installs `yt`.
 
 ## Build
 
@@ -235,4 +263,26 @@ If Go cannot write to the default build cache on your machine, use a workspace-l
 New-Item -ItemType Directory -Force .gocache | Out-Null
 $env:GOCACHE = (Resolve-Path .\.gocache).Path
 go test ./...
+```
+
+## Corporate Distribution
+
+The Selectel S3 release channel uses:
+
+- endpoint: `https://s3.ru-1.storage.selcloud.ru`
+- region: `ru-1`
+- bucket: `yandex-tracker-cli`
+
+Expected GitHub Actions secrets:
+
+- `SELECTEL_S3_ACCESS_KEY_ID`
+- `SELECTEL_S3_SECRET_ACCESS_KEY`
+- `SELECTEL_S3_BUCKET`
+- `SELECTEL_S3_ENDPOINT`
+- `SELECTEL_S3_REGION`
+
+Manual upload from a local `dist/` directory:
+
+```powershell
+.\scripts\publish-s3.ps1 -Version v1.3.1
 ```
