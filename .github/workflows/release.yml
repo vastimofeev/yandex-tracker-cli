@@ -119,10 +119,6 @@ jobs:
           cd dist
           sha256sum yt-* > checksums.txt
 
-      - name: Install AWS CLI
-        if: ${{ secrets.SELECTEL_S3_ACCESS_KEY_ID != '' && secrets.SELECTEL_S3_SECRET_ACCESS_KEY != '' }}
-        uses: aws-actions/setup-aws-cli@v4
-
       - name: Set Selectel defaults
         if: ${{ secrets.SELECTEL_S3_ACCESS_KEY_ID != '' && secrets.SELECTEL_S3_SECRET_ACCESS_KEY != '' }}
         shell: bash
