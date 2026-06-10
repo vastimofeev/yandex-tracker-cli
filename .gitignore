@@ -1,5 +1,6 @@
 .gocache/
 .tmp-bin/
+dist-bundle/
 .vendor/
 .docs/
 docs/
