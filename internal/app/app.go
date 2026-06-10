@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/vasti/yandex-tracker-cli/internal/auth"
-	"github.com/vasti/yandex-tracker-cli/internal/client"
-	"github.com/vasti/yandex-tracker-cli/internal/config"
-	"github.com/vasti/yandex-tracker-cli/internal/output"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/auth"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/client"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/config"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/output"
 )
 
 type App struct {

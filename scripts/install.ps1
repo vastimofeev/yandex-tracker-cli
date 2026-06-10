@@ -2,11 +2,11 @@ param(
     [string]$InstallDir = "$HOME\.local\bin",
     [switch]$SkipPathUpdate,
     [string]$Version = "",
-    [string]$Repo = "vasti/yandex-tracker-cli",
+    [string]$Repo = "vastimofeev/yandex-tracker-cli",
     [switch]$FromRelease,
-    [ValidateSet("local", "github", "s3")]
+    [ValidateSet("local", "github", "bundle")]
     [string]$Channel = "",
-    [string]$BaseUrl = "https://s3.ru-1.storage.selcloud.ru/yandex-tracker-cli"
+    [string]$BinaryPath = ""
 )
 
 $ErrorActionPreference = 'Stop'
@@ -27,20 +27,18 @@ switch ($resolvedChannel) {
     "local" {
         & (Join-Path $PSScriptRoot "build.ps1") -Output $output -Version $Version
     }
+    "bundle" {
+        if (-not $BinaryPath) {
+            throw "binary path is required for bundle installs"
+        }
+        $resolvedBinaryPath = Resolve-Path $BinaryPath -ErrorAction Stop
+        Copy-Item $resolvedBinaryPath $output -Force
+    }
     "github" {
         if ($Version) {
             $downloadUrl = "https://github.com/$Repo/releases/download/$Version/yt-windows-amd64.exe"
         } else {
             $downloadUrl = "https://github.com/$Repo/releases/latest/download/yt-windows-amd64.exe"
-        }
-        Invoke-WebRequest -Uri $downloadUrl -OutFile $output
-    }
-    "s3" {
-        $normalizedBaseUrl = $BaseUrl.TrimEnd('/')
-        if ($Version) {
-            $downloadUrl = "$normalizedBaseUrl/releases/$Version/yt-windows-amd64.exe"
-        } else {
-            $downloadUrl = "$normalizedBaseUrl/latest/windows/yt.exe"
         }
         Invoke-WebRequest -Uri $downloadUrl -OutFile $output
     }

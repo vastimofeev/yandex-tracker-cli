@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/vasti/yandex-tracker-cli/internal/model"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/model"
 )
 
 func TestHumanFormatsIssue(t *testing.T) {

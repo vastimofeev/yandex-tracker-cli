@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/vasti/yandex-tracker-cli/internal/app"
-	"github.com/vasti/yandex-tracker-cli/internal/cli"
-	"github.com/vasti/yandex-tracker-cli/internal/version"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/app"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/cli"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/version"
 )
 
 var (

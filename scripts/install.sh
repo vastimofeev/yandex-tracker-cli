@@ -3,10 +3,9 @@ set -euo pipefail
 
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 VERSION=""
-REPO="vasti/yandex-tracker-cli"
+REPO="vastimofeev/yandex-tracker-cli"
 FROM_RELEASE="false"
 CHANNEL=""
-BASE_URL="${BASE_URL:-https://s3.ru-1.storage.selcloud.ru/yandex-tracker-cli}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -28,10 +27,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     --channel)
       CHANNEL="$2"
-      shift 2
-      ;;
-    --base-url)
-      BASE_URL="$2"
       shift 2
       ;;
     *)
@@ -80,14 +75,6 @@ if [[ "$CHANNEL" != "local" ]]; then
         DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION}/${ASSET_NAME}"
       else
         DOWNLOAD_URL="https://github.com/${REPO}/releases/latest/download/${ASSET_NAME}"
-      fi
-      ;;
-    s3)
-      BASE_URL="${BASE_URL%/}"
-      if [[ -n "$VERSION" ]]; then
-        DOWNLOAD_URL="${BASE_URL}/releases/${VERSION}/${ASSET_NAME}"
-      else
-        DOWNLOAD_URL="${BASE_URL}/latest/${ASSET_NAME}"
       fi
       ;;
     *)

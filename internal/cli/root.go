@@ -10,13 +10,13 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/vasti/yandex-tracker-cli/internal/app"
-	"github.com/vasti/yandex-tracker-cli/internal/auth"
-	"github.com/vasti/yandex-tracker-cli/internal/client"
-	"github.com/vasti/yandex-tracker-cli/internal/config"
-	"github.com/vasti/yandex-tracker-cli/internal/model"
-	"github.com/vasti/yandex-tracker-cli/internal/service"
-	"github.com/vasti/yandex-tracker-cli/internal/version"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/app"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/auth"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/client"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/config"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/model"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/service"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/version"
 )
 
 type rootOptions struct {
@@ -211,20 +211,20 @@ The saved auth context is stored in the system keyring.`,
 					return err
 				}
 				status := map[string]any{
-					"authStore":        currentStoreKind(runtime.Store, runtime.Config.AuthStore),
-					"baseURL":          runtime.Config.BaseURL,
-					"configured":       runtime.Config.Auth.Complete(),
-					"tokenPresent":     runtime.Config.Auth.Token != "",
-					"orgPresent":       runtime.Config.Auth.OrgID != "" && runtime.Config.Auth.OrgHeader != "",
-					"orgID":            runtime.Config.Auth.OrgID,
-					"orgHeader":        runtime.Config.Auth.OrgHeader,
-					"tokenType":        runtime.Config.Auth.TokenType,
-					"savedConfigured":  runtime.Stored.Auth.Complete(),
+					"authStore":         currentStoreKind(runtime.Store, runtime.Config.AuthStore),
+					"baseURL":           runtime.Config.BaseURL,
+					"configured":        runtime.Config.Auth.Complete(),
+					"tokenPresent":      runtime.Config.Auth.Token != "",
+					"orgPresent":        runtime.Config.Auth.OrgID != "" && runtime.Config.Auth.OrgHeader != "",
+					"orgID":             runtime.Config.Auth.OrgID,
+					"orgHeader":         runtime.Config.Auth.OrgHeader,
+					"tokenType":         runtime.Config.Auth.TokenType,
+					"savedConfigured":   runtime.Stored.Auth.Complete(),
 					"savedTokenPresent": runtime.Stored.Auth.Token != "",
-					"savedOrgPresent":  runtime.Stored.Auth.OrgID != "" && runtime.Stored.Auth.OrgHeader != "",
-					"savedOrgID":       runtime.Stored.Auth.OrgID,
-					"savedOrgHeader":   runtime.Stored.Auth.OrgHeader,
-					"savedTokenType":   runtime.Stored.Auth.TokenType,
+					"savedOrgPresent":   runtime.Stored.Auth.OrgID != "" && runtime.Stored.Auth.OrgHeader != "",
+					"savedOrgID":        runtime.Stored.Auth.OrgID,
+					"savedOrgHeader":    runtime.Stored.Auth.OrgHeader,
+					"savedTokenType":    runtime.Stored.Auth.TokenType,
 				}
 				if runtime.Config.Auth.Token != "" {
 					svc := service.New(runtime.Client)
@@ -449,7 +449,7 @@ This command is intended to help an agent discover:
   yt issue edit DV-1 --summary "Updated title"
   yt issue edit DV-1 --description "Updated description"
   yt issue edit DV-1 --field assignee=v.timofeev --field tags=updated,cli`),
-		Args:  cobra.ExactArgs(1),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -471,7 +471,7 @@ This command is intended to help an agent discover:
 		Use:     "transitions <issue-key>",
 		Short:   "List transitions that can be executed for the current issue state",
 		Example: "  yt issue transitions DV-1 --json",
-		Args:  cobra.ExactArgs(1),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -493,7 +493,7 @@ This command is intended to help an agent discover:
 		Example: strings.TrimSpace(`
   yt issue transition DV-1 --id reopen
   yt issue transition DV-1 --to "In Progress" --comment "Restarting work"`),
-		Args:  cobra.ExactArgs(1),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -516,7 +516,7 @@ This command is intended to help an agent discover:
 		Use:     "get <issue-key>",
 		Short:   "Get a single issue by key",
 		Example: "  yt issue get DV-1 --json",
-		Args:  cobra.ExactArgs(1),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -554,7 +554,7 @@ func newCommentCommand(application *app.App, opts *rootOptions) *cobra.Command {
 		Example: strings.TrimSpace(`
   yt issue comment add DV-1 --text "Investigating"
   yt issue comment add DV-1 --text "Need review" --summonee v.timofeev`),
-		Args:  cobra.ExactArgs(1),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -581,7 +581,7 @@ func newCommentCommand(application *app.App, opts *rootOptions) *cobra.Command {
 		Use:     "list <issue-key>",
 		Short:   "List issue comments with pagination",
 		Example: "  yt issue comment list DV-1 --per-page 20 --page 2 --json",
-		Args:  cobra.ExactArgs(1),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -606,7 +606,7 @@ func newCommentCommand(application *app.App, opts *rootOptions) *cobra.Command {
 		Example: strings.TrimSpace(`
   yt issue comment edit DV-1 123 --text "Updated comment"
   yt issue comment edit DV-1 123 --text "Paging reviewer" --summonee v.timofeev`),
-		Args:  cobra.ExactArgs(2),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -646,7 +646,7 @@ func newWorklogCommand(application *app.App, opts *rootOptions) *cobra.Command {
 		Example: strings.TrimSpace(`
   yt issue worklog add DV-1 --duration PT1H
   yt issue worklog add DV-1 --duration PT30M --comment "Bug triage"`),
-		Args:  cobra.ExactArgs(1),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -669,7 +669,7 @@ func newWorklogCommand(application *app.App, opts *rootOptions) *cobra.Command {
 		Use:     "list <issue-key>",
 		Short:   "List worklog entries with pagination",
 		Example: "  yt issue worklog list DV-1 --per-page 20 --page 2 --json",
-		Args:  cobra.ExactArgs(1),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -700,7 +700,7 @@ func newLinksCommand(application *app.App, opts *rootOptions) *cobra.Command {
 		Use:     "list <issue-key>",
 		Short:   "List links for an issue",
 		Example: "  yt issue links list DV-1 --json",
-		Args:  cobra.ExactArgs(1),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -716,10 +716,10 @@ func newLinksCommand(application *app.App, opts *rootOptions) *cobra.Command {
 
 	var relationship, issue string
 	addCmd := &cobra.Command{
-		Use:   "add <issue-key>",
-		Short: "Create a link from one issue to another",
+		Use:     "add <issue-key>",
+		Short:   "Create a link from one issue to another",
 		Example: "  yt issue links add DV-1 --relationship relates --issue DV-2",
-		Args:  cobra.ExactArgs(1),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -752,7 +752,7 @@ func newChecklistCommand(application *app.App, opts *rootOptions) *cobra.Command
 		Use:     "list <issue-key>",
 		Short:   "List checklist items",
 		Example: "  yt issue checklist list DV-1 --json",
-		Args:  cobra.ExactArgs(1),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -774,7 +774,7 @@ func newChecklistCommand(application *app.App, opts *rootOptions) *cobra.Command
 		Example: strings.TrimSpace(`
   yt issue checklist add DV-1 --text "Prepare release notes"
   yt issue checklist add DV-1 --text "QA signoff" --checked`),
-		Args:  cobra.ExactArgs(1),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -796,10 +796,10 @@ func newChecklistCommand(application *app.App, opts *rootOptions) *cobra.Command
 	var updateText, updateAssignee, updateDeadline string
 	var updateChecked bool
 	updateCmd := &cobra.Command{
-		Use:   "update <issue-key> <item-id>",
-		Short: "Update checklist item fields",
+		Use:     "update <issue-key> <item-id>",
+		Short:   "Update checklist item fields",
 		Example: "  yt issue checklist update DV-1 item-123 --text \"Updated text\"",
-		Args:  cobra.ExactArgs(2),
+		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -825,7 +825,7 @@ func newChecklistCommand(application *app.App, opts *rootOptions) *cobra.Command
 		Use:     "check <issue-key> <item-id>",
 		Short:   "Mark a checklist item as checked",
 		Example: "  yt issue checklist check DV-1 item-123",
-		Args:  cobra.ExactArgs(2),
+		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -843,7 +843,7 @@ func newChecklistCommand(application *app.App, opts *rootOptions) *cobra.Command
 		Use:     "uncheck <issue-key> <item-id>",
 		Short:   "Mark a checklist item as unchecked",
 		Example: "  yt issue checklist uncheck DV-1 item-123",
-		Args:  cobra.ExactArgs(2),
+		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -861,7 +861,7 @@ func newChecklistCommand(application *app.App, opts *rootOptions) *cobra.Command
 		Use:     "delete <issue-key> <item-id>",
 		Short:   "Delete a checklist item",
 		Example: "  yt issue checklist delete DV-1 item-123",
-		Args:  cobra.ExactArgs(2),
+		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -913,7 +913,7 @@ func newQueueCommand(application *app.App, opts *rootOptions) *cobra.Command {
 		Example: strings.TrimSpace(`
   yt queue get DV
   yt queue get DV --expand types --expand team --json`),
-		Args:  cobra.ExactArgs(1),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -932,7 +932,7 @@ func newQueueCommand(application *app.App, opts *rootOptions) *cobra.Command {
 		Use:     "fields <queue-key>",
 		Short:   "Get queue fields, including required and readonly markers",
 		Example: "  yt queue fields DV --json",
-		Args:  cobra.ExactArgs(1),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -950,7 +950,7 @@ func newQueueCommand(application *app.App, opts *rootOptions) *cobra.Command {
 		Use:     "local-fields <queue-key>",
 		Short:   "Get queue-local custom fields",
 		Example: "  yt queue local-fields DV --json",
-		Args:  cobra.ExactArgs(1),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			runtime, svc, err := runtimeFor(cmd, application, opts)
 			if err != nil {
@@ -1129,7 +1129,7 @@ Supported entity types:
 		Example: strings.TrimSpace(`
   yt entity get 12345 --type project
   yt entity get 67890 --type goal --json`),
-		Args:  cobra.ExactArgs(1),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if !validEntityType(entityType) {
 				return fmt.Errorf("invalid entity type %q", entityType)

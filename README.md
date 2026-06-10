@@ -18,85 +18,106 @@ The CLI currently covers:
 
 ## Install
 
-### Windows
+The recommended installation path is GitHub Releases. The installer downloads the latest published binary, installs it as `yt`, and prints the installed version.
 
-From the repository root:
-
-```powershell
-.\scripts\install.ps1
-```
-
-This installs `yt.exe` to `$HOME\.local\bin` and can add that directory to the user `PATH`.
-
-For non-technical Windows users, you can also distribute:
-
-- [install-yt.bat](/C:/Users/vasti/documents/github/yandex-tracker-cli/install-yt.bat)
-- [update-yt.bat](/C:/Users/vasti/documents/github/yandex-tracker-cli/update-yt.bat)
-- [uninstall-yt.bat](/C:/Users/vasti/documents/github/yandex-tracker-cli/uninstall-yt.bat)
-
-`install-yt.bat` installs the latest published Windows release with a double-click flow.
-
-### macOS and Linux
-
-From the repository root:
-
-```bash
-./scripts/install.sh
-```
-
-This installs `yt` to `~/.local/bin`.
-
-### Install from Release
-
-Corporate Selectel S3 channel:
-
-Windows:
+### Windows PowerShell
 
 ```powershell
-.\scripts\install.ps1 -Channel s3
+iwr https://raw.githubusercontent.com/vastimofeev/yandex-tracker-cli/main/scripts/install.ps1 -OutFile $env:TEMP\install-yt.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File $env:TEMP\install-yt.ps1 -FromRelease
 ```
 
-macOS or Linux:
-
-```bash
-./scripts/install.sh --channel s3
-```
-
-You can also pin a specific tag:
+By default this installs `yt.exe` to `$HOME\.local\bin` and adds that directory to the user `PATH` if needed. Open a new terminal after installation, then verify:
 
 ```powershell
-.\scripts\install.ps1 -Channel s3 -Version v1.3.1
+yt version
 ```
 
-```bash
-./scripts/install.sh --channel s3 --version v1.3.1
+To install a specific release tag:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File $env:TEMP\install-yt.ps1 -FromRelease -Version v1.3.0
 ```
 
-GitHub Release channel:
-
-Windows:
+If you have a cloned checkout, you can run the same script from the repository:
 
 ```powershell
 .\scripts\install.ps1 -FromRelease
 ```
 
-macOS or Linux:
+For a double-click flow, download `install-yt.bat` from this repository and run it. `update-yt.bat` updates the installed binary from the latest GitHub Release, and `uninstall-yt.bat` removes the local install.
+
+### macOS and Linux
+
+Download and install the latest GitHub Release:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/vastimofeev/yandex-tracker-cli/main/scripts/install.sh -o /tmp/install-yt.sh
+bash /tmp/install-yt.sh --from-release
+```
+
+This installs `yt` to `~/.local/bin`. Make sure that directory is in `PATH`, then verify:
+
+```bash
+yt version
+```
+
+To install a specific release tag:
+
+```bash
+bash /tmp/install-yt.sh --from-release --version v1.3.0
+```
+
+If you have a cloned checkout, you can run:
 
 ```bash
 ./scripts/install.sh --from-release
 ```
 
-You can also pin a specific tag:
+### Build from Source
+
+Install Go, clone the repository, then build a local binary:
+
+```bash
+go build -o ./yt ./cmd/yandex-tracker-cli
+```
+
+You can also install from the current checkout into `~/.local/bin`:
 
 ```powershell
-.\scripts\install.ps1 -FromRelease -Version v1.3.0
+.\scripts\install.ps1
 ```
 
 ```bash
-./scripts/install.sh --from-release --version v1.3.0
+./scripts/install.sh
 ```
 
-For non-technical Windows users, you can distribute a standalone `install-yt.bat`. When launched outside the repository, it downloads the latest installer script from the corporate Selectel S3 bucket and installs `yt`.
+### Manual Binary Install
+
+Download the asset for your platform from the latest GitHub Release:
+
+- `yt-windows-amd64.exe`
+- `yt-linux-amd64`
+- `yt-darwin-amd64`
+- `yt-darwin-arm64`
+
+Put the binary somewhere in `PATH`. On Windows, rename `yt-windows-amd64.exe` to `yt.exe`. On macOS and Linux, rename the asset to `yt` and make it executable:
+
+```bash
+chmod +x yt
+```
+
+### Update
+
+```powershell
+.\scripts\update.ps1 -FromRelease
+```
+
+```bash
+./scripts/update.sh --from-release
+```
+
+On Windows, `update-yt.bat` provides the same update flow.
 
 ## Build
 
@@ -263,26 +284,4 @@ If Go cannot write to the default build cache on your machine, use a workspace-l
 New-Item -ItemType Directory -Force .gocache | Out-Null
 $env:GOCACHE = (Resolve-Path .\.gocache).Path
 go test ./...
-```
-
-## Corporate Distribution
-
-The Selectel S3 release channel uses:
-
-- endpoint: `https://s3.ru-1.storage.selcloud.ru`
-- region: `ru-1`
-- bucket: `yandex-tracker-cli`
-
-Expected GitHub Actions secrets:
-
-- `SELECTEL_S3_ACCESS_KEY_ID`
-- `SELECTEL_S3_SECRET_ACCESS_KEY`
-- `SELECTEL_S3_BUCKET`
-- `SELECTEL_S3_ENDPOINT`
-- `SELECTEL_S3_REGION`
-
-Manual upload from a local `dist/` directory:
-
-```powershell
-.\scripts\publish-s3.ps1 -Version v1.3.1
 ```

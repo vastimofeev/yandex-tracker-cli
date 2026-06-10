@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/vasti/yandex-tracker-cli/internal/config"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/config"
 	"github.com/zalando/go-keyring"
 )
 

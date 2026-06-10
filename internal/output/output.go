@@ -8,8 +8,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/vasti/yandex-tracker-cli/internal/model"
-	"github.com/vasti/yandex-tracker-cli/internal/version"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/model"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/version"
 )
 
 type Printer struct {

@@ -1,21 +1,25 @@
 param(
     [string]$InstallDir = "$HOME\.local\bin",
     [string]$Version = "",
-    [string]$Repo = "vasti/yandex-tracker-cli",
+    [string]$Repo = "vastimofeev/yandex-tracker-cli",
     [switch]$FromRelease,
     [switch]$SkipPathUpdate,
-    [ValidateSet("local", "github", "s3")]
-    [string]$Channel = "",
-    [string]$BaseUrl = "https://s3.ru-1.storage.selcloud.ru/yandex-tracker-cli"
+    [ValidateSet("local", "github")]
+    [string]$Channel = ""
 )
 
 $ErrorActionPreference = 'Stop'
 
-& (Join-Path $PSScriptRoot "install.ps1") `
-    -InstallDir $InstallDir `
-    -Version $Version `
-    -Repo $Repo `
-    -FromRelease:$FromRelease `
-    -SkipPathUpdate:$SkipPathUpdate `
-    -Channel $Channel `
-    -BaseUrl $BaseUrl
+$installArgs = @{
+    InstallDir      = $InstallDir
+    Version         = $Version
+    Repo            = $Repo
+    FromRelease     = $FromRelease
+    SkipPathUpdate  = $SkipPathUpdate
+}
+
+if ($Channel) {
+    $installArgs.Channel = $Channel
+}
+
+& (Join-Path $PSScriptRoot "install.ps1") @installArgs

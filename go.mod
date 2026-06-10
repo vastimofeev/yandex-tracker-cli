@@ -1,4 +1,4 @@
-module github.com/vasti/yandex-tracker-cli
+module github.com/vastimofeev/yandex-tracker-cli
 
 go 1.24.2
 

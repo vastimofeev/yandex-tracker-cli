@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/vasti/yandex-tracker-cli/internal/client"
-	"github.com/vasti/yandex-tracker-cli/internal/config"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/client"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/config"
 )
 
 func TestEditIssueRejectsStatusField(t *testing.T) {

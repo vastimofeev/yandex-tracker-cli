@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vasti/yandex-tracker-cli/internal/client"
-	"github.com/vasti/yandex-tracker-cli/internal/config"
-	"github.com/vasti/yandex-tracker-cli/internal/model"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/client"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/config"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/model"
 )
 
 var errStatusFieldUpdate = errors.New("issue status cannot be edited directly; use issue transition")

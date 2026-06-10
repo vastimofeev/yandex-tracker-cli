@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/vasti/yandex-tracker-cli/internal/model"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/model"
 )
 
 func presentIssueSearch(result *model.SearchResult[model.Issue], sortField, order string, limit int, selectFields []string) (any, error) {
@@ -53,13 +53,13 @@ func presentIssueSearch(result *model.SearchResult[model.Issue], sortField, orde
 	}
 
 	return map[string]any{
-		"items":         rows,
+		"items":          rows,
 		"selectedFields": selectFields,
-		"totalCount":    result.TotalCount,
-		"pages":         result.Pages,
-		"page":          result.Page,
-		"perPage":       result.PerPage,
-		"scrollId":      result.ScrollID,
+		"totalCount":     result.TotalCount,
+		"pages":          result.Pages,
+		"page":           result.Page,
+		"perPage":        result.PerPage,
+		"scrollId":       result.ScrollID,
 	}, nil
 }
 

@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vasti/yandex-tracker-cli/internal/config"
-	"github.com/vasti/yandex-tracker-cli/internal/model"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/config"
+	"github.com/vastimofeev/yandex-tracker-cli/internal/model"
 )
 
 type Client struct {
