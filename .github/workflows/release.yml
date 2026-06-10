@@ -109,32 +109,19 @@ jobs:
           fi
           echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
 
-      - name: Create or update GitHub release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          gh release view "${VERSION}" -R "${GITHUB_REPOSITORY}" >/dev/null 2>&1 || \
-            gh release create "${VERSION}" -R "${GITHUB_REPOSITORY}" --title "${VERSION}" --notes "Automated release ${VERSION}"
-
-      - name: Upload release assets
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          find dist -maxdepth 1 -type f -print0 | while IFS= read -r -d '' file; do
-            gh release upload "${VERSION}" "$file" -R "${GITHUB_REPOSITORY}" --clobber
-          done
-
       - name: Generate checksums
         shell: bash
         run: |
           cd dist
           sha256sum yt-* > checksums.txt
 
-      - name: Upload checksums
+      - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          gh release upload "${VERSION}" dist/checksums.txt -R "${GITHUB_REPOSITORY}" --clobber
+          gh release create "${VERSION}" dist/* \
+            -R "${GITHUB_REPOSITORY}" \
+            --verify-tag \
+            --title "${VERSION}" \
+            --notes "Automated release ${VERSION}"
