@@ -12,6 +12,7 @@ type User struct {
 	ID         StringID `json:"id,omitempty"`
 	Display    string   `json:"display,omitempty"`
 	Login      string   `json:"login,omitempty"`
+	Email      string   `json:"email,omitempty"`
 	PassportID int64    `json:"passportUid,omitempty"`
 	CloudUID   string   `json:"cloudUid,omitempty"`
 }

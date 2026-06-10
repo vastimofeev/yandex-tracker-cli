@@ -19,6 +19,8 @@ import (
 	"github.com/vastimofeev/yandex-tracker-cli/internal/version"
 )
 
+const loovTeamOrgID = "7942431"
+
 type rootOptions struct {
 	ConfigPath string
 	BaseURL    string
@@ -139,22 +141,14 @@ The saved auth context is stored in the system keyring.`,
 			Short: "Validate credentials and save them to the keyring",
 			Example: strings.TrimSpace(`
   yt auth login
-  yt --token <oauth-token> --org-id 7942431 auth login`),
+  yt --token <oauth-token> auth login
+  yt --token <oauth-token> --org-id 123456 auth login`),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				runtime, err := application.BuildRuntime(cmd.Context(), cliOptions(opts))
 				if err != nil {
 					return err
 				}
 				reader := bufio.NewReader(runtime.Input)
-				if runtime.Config.Auth.OrgID == "" {
-					_, _ = fmt.Fprint(runtime.Err, "Enter org ID: ")
-					orgID, err := readToken(reader)
-					if err != nil {
-						return err
-					}
-					runtime.Config.Auth.OrgID = orgID
-				}
-				runtime.Config.Auth.OrgHeader = config.DefaultOrgHeader
 
 				tokenInput := firstNonEmptyString(opts.Token, os.Getenv(config.EnvToken))
 				if tokenInput == "" {
@@ -182,12 +176,31 @@ The saved auth context is stored in the system keyring.`,
 
 				runtime.Config.Auth.Token = tokenInput
 				runtime.Config.Auth.TokenType = config.DefaultTokenType
-				runtime.Client = client.New(runtime.Config.BaseURL, runtime.Config.Auth, nil)
-				svc := service.New(runtime.Client)
+
+				tokenOnlyAuth := runtime.Config.Auth
+				tokenOnlyAuth.OrgID = ""
+				tokenOnlyAuth.OrgHeader = ""
+				tokenOnlyClient := client.New(runtime.Config.BaseURL, tokenOnlyAuth, nil)
+				svc := service.New(tokenOnlyClient)
 				user, err := svc.ValidateAuth(cmd.Context())
 				if err != nil {
 					return err
 				}
+
+				if inferredOrgID, ok := inferOrgIDFromUser(user); ok {
+					runtime.Config.Auth.OrgID = inferredOrgID
+				}
+				if runtime.Config.Auth.OrgID == "" {
+					_, _ = fmt.Fprint(runtime.Err, "Enter org ID: ")
+					orgID, err := readToken(reader)
+					if err != nil {
+						return err
+					}
+					runtime.Config.Auth.OrgID = orgID
+				}
+				runtime.Config.Auth.OrgHeader = config.DefaultOrgHeader
+				runtime.Client = client.New(runtime.Config.BaseURL, runtime.Config.Auth, nil)
+
 				if err := runtime.Store.Save(cmd.Context(), service.BuildStoredConfig(runtime.Config)); err != nil {
 					return err
 				}
@@ -1177,6 +1190,17 @@ func firstNonEmptyString(values ...string) string {
 		}
 	}
 	return ""
+}
+
+func inferOrgIDFromUser(user *model.User) (string, bool) {
+	if user == nil {
+		return "", false
+	}
+	identity := strings.TrimSpace(firstNonEmptyString(user.Email, user.Login))
+	if strings.HasSuffix(strings.ToLower(identity), "@loov.team") {
+		return loovTeamOrgID, true
+	}
+	return "", false
 }
 
 func readToken(input io.Reader) (string, error) {

@@ -146,8 +146,10 @@ yt auth login
 Direct token login:
 
 ```powershell
-yt --token <oauth-token> --org-id 7942431 auth login
+yt --token <oauth-token> auth login
 ```
+
+During login, the CLI validates the token first. If the authenticated email is under `@loov.team`, the organization is set automatically to `7942431`. For other organizations, pass `--org-id` or enter it when prompted.
 
 Inspect the saved session:
 
