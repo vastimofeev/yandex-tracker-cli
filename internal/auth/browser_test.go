@@ -117,3 +117,29 @@ func TestLoginWithBrowserRejectsNonLocalRedirect(t *testing.T) {
 		t.Fatalf("error = %q, want localhost validation", err.Error())
 	}
 }
+
+func TestFetchUserInfoUsesOAuthToken(t *testing.T) {
+	t.Parallel()
+
+	var authHeader string
+	userInfoServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader = r.Header.Get("Authorization")
+		if r.URL.Query().Get("format") != "json" {
+			t.Fatalf("format = %q, want json", r.URL.Query().Get("format"))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{"login":"user","default_email":"user@loov.team","emails":["user@loov.team"]}`)
+	}))
+	defer userInfoServer.Close()
+
+	info, err := fetchUserInfo(context.Background(), "token-123", userInfoServer.URL, userInfoServer.Client())
+	if err != nil {
+		t.Fatalf("fetchUserInfo() error = %v", err)
+	}
+	if authHeader != "OAuth token-123" {
+		t.Fatalf("Authorization = %q, want OAuth token-123", authHeader)
+	}
+	if info.DefaultEmail != "user@loov.team" {
+		t.Fatalf("DefaultEmail = %q, want user@loov.team", info.DefaultEmail)
+	}
+}

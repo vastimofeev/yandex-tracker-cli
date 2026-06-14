@@ -3,6 +3,7 @@ package cli
 import (
 	"testing"
 
+	"github.com/vastimofeev/yandex-tracker-cli/internal/auth"
 	"github.com/vastimofeev/yandex-tracker-cli/internal/model"
 )
 
@@ -36,5 +37,29 @@ func TestInferOrgIDIgnoresOtherDomains(t *testing.T) {
 	orgID, ok := inferOrgIDFromUser(&model.User{Email: "user@example.com"})
 	if ok {
 		t.Fatalf("inferOrgIDFromUser() ok = true, orgID = %q; want false", orgID)
+	}
+}
+
+func TestInferOrgIDFromOAuthDefaultEmail(t *testing.T) {
+	t.Parallel()
+
+	orgID, ok := inferOrgIDFromOAuthUser(&auth.UserInfo{DefaultEmail: "user@loov.team"})
+	if !ok {
+		t.Fatal("inferOrgIDFromOAuthUser() ok = false, want true")
+	}
+	if orgID != loovTeamOrgID {
+		t.Fatalf("orgID = %q, want %q", orgID, loovTeamOrgID)
+	}
+}
+
+func TestInferOrgIDFromOAuthEmailList(t *testing.T) {
+	t.Parallel()
+
+	orgID, ok := inferOrgIDFromOAuthUser(&auth.UserInfo{Login: "user", Emails: []string{"user@loov.team"}})
+	if !ok {
+		t.Fatal("inferOrgIDFromOAuthUser() ok = false, want true")
+	}
+	if orgID != loovTeamOrgID {
+		t.Fatalf("orgID = %q, want %q", orgID, loovTeamOrgID)
 	}
 }

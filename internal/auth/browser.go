@@ -20,6 +20,7 @@ import (
 const (
 	DefaultAuthorizeURL = "https://oauth.yandex.ru/authorize"
 	DefaultTokenURL     = "https://oauth.yandex.ru/token"
+	DefaultUserInfoURL  = "https://login.yandex.ru/info"
 	DefaultDeviceName   = "yandex-tracker-cli"
 )
 
@@ -46,6 +47,15 @@ type BrowserLoginResult struct {
 	RefreshToken     string `json:"refresh_token,omitempty"`
 	ExpiresIn        int    `json:"expires_in,omitempty"`
 	TokenType        string `json:"token_type,omitempty"`
+}
+
+type UserInfo struct {
+	ID           string   `json:"id,omitempty"`
+	Login        string   `json:"login,omitempty"`
+	DisplayName  string   `json:"display_name,omitempty"`
+	RealName     string   `json:"real_name,omitempty"`
+	DefaultEmail string   `json:"default_email,omitempty"`
+	Emails       []string `json:"emails,omitempty"`
 }
 
 type callbackResult struct {
@@ -268,6 +278,57 @@ func BuildTokenAuthorizeURL(opts BrowserLoginOptions) (string, error) {
 	}
 	opts.ResponseType = "token"
 	return buildAuthorizeURL(opts, opts.RedirectURI, "", "", ""), nil
+}
+
+func FetchUserInfo(ctx context.Context, token string, httpClient *http.Client) (*UserInfo, error) {
+	return fetchUserInfo(ctx, token, DefaultUserInfoURL, httpClient)
+}
+
+func fetchUserInfo(ctx context.Context, token, rawURL string, httpClient *http.Client) (*UserInfo, error) {
+	token = strings.TrimSpace(token)
+	if token == "" {
+		return nil, fmt.Errorf("oauth token is required")
+	}
+	if httpClient == nil {
+		httpClient = &http.Client{Timeout: 30 * time.Second}
+	}
+
+	infoURL, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, err
+	}
+	query := infoURL.Query()
+	query.Set("format", "json")
+	infoURL.RawQuery = query.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, infoURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "OAuth "+token)
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("oauth user info request failed with status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+
+	var info UserInfo
+	if err := json.Unmarshal(body, &info); err != nil {
+		return nil, err
+	}
+	if info.Login == "" && info.DefaultEmail == "" && len(info.Emails) == 0 {
+		return nil, fmt.Errorf("oauth user info response did not include login or email")
+	}
+	return &info, nil
 }
 
 func pkceChallenge(verifier string) string {

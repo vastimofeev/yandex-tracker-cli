@@ -27,6 +27,7 @@ type rootOptions struct {
 	Token      string
 	TokenType  string
 	OrgID      string
+	OrgHeader  string
 	JSON       bool
 	Debug      bool
 }
@@ -65,6 +66,7 @@ Core areas:
 	flags.StringVar(&opts.Token, "token", "", "Tracker OAuth token override for the current command")
 	flags.StringVar(&opts.TokenType, "token-type", "", "Token type override: OAuth or Bearer")
 	flags.StringVar(&opts.OrgID, "org-id", "", "Organization ID override for the current command")
+	flags.StringVar(&opts.OrgHeader, "org-header", "", "Organization header override: X-Org-ID or X-Cloud-Org-ID")
 	flags.BoolVar(&opts.JSON, "json", false, "Render machine-readable JSON for agent workflows")
 	flags.BoolVar(&opts.Debug, "debug", false, "enable debug logging")
 
@@ -110,6 +112,7 @@ func cliOptions(opts *rootOptions) config.CLIOptions {
 		Token:      opts.Token,
 		TokenType:  opts.TokenType,
 		OrgID:      opts.OrgID,
+		OrgHeader:  opts.OrgHeader,
 		JSON:       opts.JSON,
 		Debug:      opts.Debug,
 	}
@@ -142,7 +145,8 @@ The saved auth context is stored in the system keyring.`,
 			Example: strings.TrimSpace(`
   yt auth login
   yt --token <oauth-token> auth login
-  yt --token <oauth-token> --org-id 123456 auth login`),
+  yt --token <oauth-token> --org-id 123456 auth login
+  yt --token <oauth-token> --org-id <cloud-org-id> --org-header X-Cloud-Org-ID auth login`),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				runtime, err := application.BuildRuntime(cmd.Context(), cliOptions(opts))
 				if err != nil {
@@ -176,19 +180,14 @@ The saved auth context is stored in the system keyring.`,
 
 				runtime.Config.Auth.Token = tokenInput
 				runtime.Config.Auth.TokenType = config.DefaultTokenType
-
-				tokenOnlyAuth := runtime.Config.Auth
-				tokenOnlyAuth.OrgID = ""
-				tokenOnlyAuth.OrgHeader = ""
-				tokenOnlyClient := client.New(runtime.Config.BaseURL, tokenOnlyAuth, nil)
-				svc := service.New(tokenOnlyClient)
-				user, err := svc.ValidateAuth(cmd.Context())
+				oauthUser, err := auth.FetchUserInfo(cmd.Context(), tokenInput, nil)
 				if err != nil {
 					return err
 				}
-
-				if inferredOrgID, ok := inferOrgIDFromUser(user); ok {
-					runtime.Config.Auth.OrgID = inferredOrgID
+				if runtime.Config.Auth.OrgID == "" {
+					if inferredOrgID, ok := inferOrgIDFromOAuthUser(oauthUser); ok {
+						runtime.Config.Auth.OrgID = inferredOrgID
+					}
 				}
 				if runtime.Config.Auth.OrgID == "" {
 					_, _ = fmt.Fprint(runtime.Err, "Enter org ID: ")
@@ -198,8 +197,13 @@ The saved auth context is stored in the system keyring.`,
 					}
 					runtime.Config.Auth.OrgID = orgID
 				}
-				runtime.Config.Auth.OrgHeader = config.DefaultOrgHeader
+				runtime.Config.Auth.OrgHeader = config.NormalizeOrgHeader(runtime.Config.Auth.OrgHeader)
 				runtime.Client = client.New(runtime.Config.BaseURL, runtime.Config.Auth, nil)
+				svc := service.New(runtime.Client)
+				user, err := svc.ValidateAuth(cmd.Context())
+				if err != nil {
+					return err
+				}
 
 				if err := runtime.Store.Save(cmd.Context(), service.BuildStoredConfig(runtime.Config)); err != nil {
 					return err
@@ -1192,11 +1196,30 @@ func firstNonEmptyString(values ...string) string {
 	return ""
 }
 
+func inferOrgIDFromOAuthUser(user *auth.UserInfo) (string, bool) {
+	if user == nil {
+		return "", false
+	}
+	if orgID, ok := inferOrgIDFromIdentity(user.DefaultEmail); ok {
+		return orgID, true
+	}
+	for _, email := range user.Emails {
+		if orgID, ok := inferOrgIDFromIdentity(email); ok {
+			return orgID, true
+		}
+	}
+	return inferOrgIDFromIdentity(user.Login)
+}
+
 func inferOrgIDFromUser(user *model.User) (string, bool) {
 	if user == nil {
 		return "", false
 	}
-	identity := strings.TrimSpace(firstNonEmptyString(user.Email, user.Login))
+	return inferOrgIDFromIdentity(firstNonEmptyString(user.Email, user.Login))
+}
+
+func inferOrgIDFromIdentity(identity string) (string, bool) {
+	identity = strings.TrimSpace(identity)
 	if strings.HasSuffix(strings.ToLower(identity), "@loov.team") {
 		return loovTeamOrgID, true
 	}
