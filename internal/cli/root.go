@@ -749,7 +749,7 @@ func newLinksCommand(application *app.App, opts *rootOptions) *cobra.Command {
 			return runtime.Printer.Print(link)
 		},
 	}
-	addCmd.Flags().StringVar(&relationship, "relationship", "", "relationship type ID")
+	addCmd.Flags().StringVar(&relationship, "relationship", "", "relationship: relates | is dependent by | duplicates | is duplicated by | is epic of (aliases blocks/blocker/depends upon, depends, duplicate are mapped)")
 	addCmd.Flags().StringVar(&issue, "issue", "", "linked issue key or ID")
 	_ = addCmd.MarkFlagRequired("relationship")
 	_ = addCmd.MarkFlagRequired("issue")

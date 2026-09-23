@@ -202,9 +202,21 @@ func (s *TrackerService) AddLink(ctx context.Context, key, relationship, issue s
 	if strings.TrimSpace(issue) == "" {
 		return nil, fmt.Errorf("issue is required")
 	}
-	return s.client.AddLink(ctx, key, client.LinkCreateRequest{
-		Relationship: relationship,
-		Issue:        issue,
+
+	resolved, err := ResolveLinkRelationship(relationship)
+	if err != nil {
+		return nil, err
+	}
+
+	// Direction-swapping aliases ("blocks") post the link from the blocked
+	// side, because the API has no direct "source blocks target" value.
+	from, target := key, issue
+	if resolved.Swap {
+		from, target = issue, key
+	}
+	return s.client.AddLink(ctx, from, client.LinkCreateRequest{
+		Relationship: resolved.Value,
+		Issue:        target,
 	})
 }
 
