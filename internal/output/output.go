@@ -120,6 +120,18 @@ func formatIssue(issue *model.Issue) string {
 	lines = appendIf(lines, "priority: "+referenceLabel(issue.Priority))
 	lines = appendIf(lines, "queue: "+referenceLabel(issue.Queue))
 	lines = appendIf(lines, "assignee: "+userLabel(issue.Assignee))
+	if issue.StoryPoints != nil {
+		lines = append(lines, fmt.Sprintf("story points: %g", *issue.StoryPoints))
+	}
+	lines = appendIf(lines, "resolution: "+referenceLabel(issue.Resolution))
+	if len(issue.Sprint) > 0 {
+		labels := make([]string, 0, len(issue.Sprint))
+		for _, sprint := range issue.Sprint {
+			labels = append(labels, referenceLabel(&sprint))
+		}
+		lines = append(lines, "sprint: "+strings.Join(labels, ", "))
+	}
+	lines = appendIf(lines, "deadline: "+issue.Deadline)
 	lines = appendIf(lines, fmt.Sprintf("version: %d", issue.Version))
 	lines = appendIf(lines, "created: "+issue.CreatedAt)
 	lines = appendIf(lines, "updated: "+issue.UpdatedAt)

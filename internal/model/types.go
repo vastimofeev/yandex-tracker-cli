@@ -43,6 +43,10 @@ type Issue struct {
 	UpdatedBy      *User           `json:"updatedBy,omitempty"`
 	Followers      []User          `json:"followers,omitempty"`
 	Tags           []string        `json:"tags,omitempty"`
+	StoryPoints    *float64        `json:"storyPoints,omitempty"`
+	Resolution     *Reference      `json:"resolution,omitempty"`
+	Sprint         []Reference     `json:"sprint,omitempty"`
+	Deadline       string          `json:"deadline,omitempty"`
 	Project        *ProjectRef     `json:"project,omitempty"`
 	ChecklistItems []ChecklistItem `json:"checklistItems,omitempty"`
 	ChecklistTotal int             `json:"checklistTotal,omitempty"`
