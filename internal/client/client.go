@@ -287,6 +287,10 @@ func (c *Client) AddLink(ctx context.Context, key string, payload LinkCreateRequ
 	return &link, nil
 }
 
+func (c *Client) DeleteLink(ctx context.Context, key, linkID string) error {
+	return c.doJSON(ctx, http.MethodDelete, "/issues/"+url.PathEscape(key)+"/links/"+url.PathEscape(linkID), nil, nil, nil)
+}
+
 func (c *Client) ListChecklist(ctx context.Context, key string) ([]model.ChecklistItem, error) {
 	var items []model.ChecklistItem
 	if err := c.doJSON(ctx, http.MethodGet, "/issues/"+url.PathEscape(key)+"/checklistItems", nil, nil, &items); err != nil {

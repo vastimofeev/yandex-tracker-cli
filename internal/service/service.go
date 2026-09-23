@@ -220,6 +220,16 @@ func (s *TrackerService) AddLink(ctx context.Context, key, relationship, issue s
 	})
 }
 
+func (s *TrackerService) DeleteLink(ctx context.Context, key, linkID string) error {
+	if strings.TrimSpace(key) == "" {
+		return fmt.Errorf("issue key is required")
+	}
+	if strings.TrimSpace(linkID) == "" {
+		return fmt.Errorf("link id is required (see: yt issue links list)")
+	}
+	return s.client.DeleteLink(ctx, key, linkID)
+}
+
 func (s *TrackerService) ListChecklist(ctx context.Context, key string) ([]model.ChecklistItem, error) {
 	return s.client.ListChecklist(ctx, key)
 }

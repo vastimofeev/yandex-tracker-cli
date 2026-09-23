@@ -754,7 +754,29 @@ func newLinksCommand(application *app.App, opts *rootOptions) *cobra.Command {
 	_ = addCmd.MarkFlagRequired("relationship")
 	_ = addCmd.MarkFlagRequired("issue")
 
-	cmd.AddCommand(listCmd, addCmd)
+	removeCmd := &cobra.Command{
+		Use:     "remove <issue-key> <link-id>",
+		Aliases: []string{"rm", "delete"},
+		Short:   "Delete a link from an issue",
+		Example: "  yt issue links remove DV-1 13679",
+		Args:    cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			runtime, svc, err := runtimeFor(cmd, application, opts)
+			if err != nil {
+				return err
+			}
+			if err := svc.DeleteLink(cmd.Context(), args[0], args[1]); err != nil {
+				return err
+			}
+			return runtime.Printer.Print(map[string]string{
+				"status":  "deleted",
+				"issue":   args[0],
+				"link_id": args[1],
+			})
+		},
+	}
+
+	cmd.AddCommand(listCmd, addCmd, removeCmd)
 	return cmd
 }
 
