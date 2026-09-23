@@ -461,7 +461,9 @@ func (c *Client) doJSONWithHeaders(ctx context.Context, method, path string, que
 
 		resp, err := c.httpClient.Do(req)
 		if err != nil {
-			if isRetryable(err) && attempt < c.retries {
+			// A dropped request may still have been delivered; only repeat
+			// calls that are safe to execute twice.
+			if isRetryable(err) && attempt < c.retries && isRepeatableCall(method, path) {
 				continue
 			}
 			return nil, &NetworkError{Err: err}
@@ -470,13 +472,31 @@ func (c *Client) doJSONWithHeaders(ctx context.Context, method, path string, que
 		headers = resp.Header.Clone()
 		respErr := decodeResponse(resp, out)
 		resp.Body.Close()
-		if apiErr, ok := respErr.(*APIError); ok && apiErr.StatusCode >= 500 && attempt < c.retries {
+		if apiErr, ok := respErr.(*APIError); ok && apiErr.StatusCode >= 500 && attempt < c.retries && isRepeatableCall(method, path) {
 			continue
 		}
 		return headers, respErr
 	}
 
 	return headers, nil
+}
+
+// isRepeatableCall reports whether retrying the call is safe: GET and
+// friends are idempotent, and POST is only safe for the read-style search
+// and count endpoints. Other POSTs (create issue, comments, links,
+// transitions) may have been processed before the failure and are not
+// retried automatically.
+func isRepeatableCall(method, path string) bool {
+	switch method {
+	case http.MethodGet, http.MethodHead, http.MethodOptions, http.MethodPut, http.MethodPatch, http.MethodDelete:
+		return true
+	case http.MethodPost:
+		return strings.HasPrefix(path, "/issues/_search") ||
+			strings.HasPrefix(path, "/issues/_count") ||
+			strings.HasPrefix(path, "/queues/_search")
+	default:
+		return false
+	}
 }
 
 func (c *Client) newRequest(ctx context.Context, method, path string, query url.Values, payload []byte) (*http.Request, error) {

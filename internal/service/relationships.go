@@ -65,8 +65,8 @@ func ResolveLinkRelationship(relationship string) (ResolvedRelationship, error) 
 	lower := strings.ToLower(name)
 	if parentManagedRelationships[lower] {
 		return ResolvedRelationship{}, fmt.Errorf(
-			"relationship %q cannot be created via issue links; manage subtask links through the parent field (yt issue edit %s --set parent=<KEY>)",
-			name, "<issue-key>")
+			"relationship %q cannot be created via issue links; manage subtask links through the parent field (yt issue edit <issue-key> --set parent=<parent-key>)",
+			name)
 	}
 	if alias, ok := linkAliases[lower]; ok {
 		if strings.HasSuffix(alias, "!") {
